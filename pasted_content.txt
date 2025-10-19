@@ -1,0 +1,110 @@
+DESARROLLA una aplicación web completa para gestión de proyectos de desarrollo de software con las siguientes características:
+
+## 🎯 CONTEXTO Y OBJETIVO
+Aplicación para estimación precisa de tiempos en proyectos de desarrollo, considerando:
+- Catálogo de tareas predefinidas con tiempos base
+- Diferentes niveles de seniority (Junior, Pleno, Senior, Lead)
+- Cálculo automático de tiempos ajustados por experiencia
+- Gestión completa de proyectos y recursos humanos
+
+## 📊 ESTRUCTURA DE DATOS REQUERIDA
+
+### 1. CATÁLOGO DE TAREAS (Base)
+- ID, Nombre, Categoría, Perfil Sugerido
+- Estimativa (Horas), Complexidade, Fonte, Classificação
+- (Basado en el Excel proporcionado con 53 tareas predefinidas)
+
+### 2. PROGRAMADORES/PMs
+- ID, Nombre, Email, Seniority (Junior/Pleno/Senior/Lead/PM)
+- Especialidades (Front/Back/DB/DevOps/etc.)
+- Activo (boolean)
+- Fecha de contratación
+
+### 3. PROYECTOS
+- ID, Nombre, Descripción, Fecha de creación
+- Estado (Planificación/En progreso/Completado)
+- Cliente/Área solicitante
+
+### 4. TAREAS ASIGNADAS (Project Tasks)
+- ID, Proyecto ID, Tarea ID, Programador ID
+- Tiempo estimado (calculado)
+- Tiempo real (opcional)
+- Estado (Pendiente/En progreso/Completada)
+- Prioridad (Alta/Media/Baja)
+- Fecha de entrega estimada
+
+## ⚙️ COEFICIENTES DE SENIORITY
+- Junior: 1.75x (75% más tiempo)
+- Pleno: 1.00x (referencia)
+- Senior: 0.75x (25% menos tiempo)
+- Lead: 0.60x (40% menos tiempo)
+- PM: No aplica coeficiente a tareas de gestión
+
+## 🎨 INTERFAZ Y FUNCIONALIDADES
+
+### PÁGINA PRINCIPAL - DASHBOARD
+- Resumen de proyectos activos
+- Tiempo total estimado por proyecto
+- Gráfico de distribución de tareas por categoría
+- Lista de programadores con carga actual
+
+### MÓDULO DE CATÁLOGO DE TAREAS
+- Tabla con todas las tareas predefinidas
+- Filtros por: Categoría, Complexidade, Classificação
+- Búsqueda por nombre
+- Modal de detalles de cada tarea
+- **CRUD completo** (Crear, Editar, Eliminar tareas)
+
+### MÓDULO DE PROGRAMADORES/PMs
+- Lista de recursos con seniority y especialidades
+- Filtros por: Seniority, Especialidad, Estado
+- **CRUD completo** con formulario de edición
+- Modal para asignar habilidades/especialidades
+
+### MÓDULO DE PROYECTOS
+#### Lista de Proyectos
+- Tarjetas con: Nombre, Estado, Tiempo total estimado
+- Botones: Ver detalle, Editar, Eliminar
+
+#### Detalle de Proyecto
+- **Header**: Nombre, Estado, TIEMPO TOTAL ESTIMADO (calculado en tiempo real)
+- **Sección de Tareas Asignadas**:
+  - Tabla con: Tarea, Programador asignado, Tiempo estimado, Prioridad, Estado
+  - Botón "Agregar Tarea" que abre modal
+
+#### Modal de Asignación de Tareas
+- **Selector de Tarea**: Dropdown con búsqueda del catálogo
+- **Información automática**: Al seleccionar tarea, mostrar:
+  - Tiempo base (del catálogo)
+  - Perfil sugerido
+  - Categoría y complexidade
+- **Selector de Programador**: Dropdown filtrado por especialidad requerida
+- **Cálculo automático**: Al seleccionar programador, calcular:
+  - Tiempo estimado = Tiempo base × Coeficiente seniority
+  - (Excepto tareas de Gestão para PMs)
+- Campos adicionales: Prioridad, Fecha de entrega
+
+### CÁLCULOS EN TIEMPO REAL
+- Al agregar/remover tareas: Recalcular tiempo total del proyecto
+- Al cambiar asignación: Recalcular tiempo específico de tarea
+- Tiempo total = Σ(Tiempo base × Coeficiente seniority)
+
+## 🛠 TECNOLOGÍAS ESPECÍFICAS
+
+### FRONTEND (React + TypeScript)
+- **UI Framework**: Material-UI (MUI) o Ant Design
+- **Estado**: Redux Toolkit para gestión global
+- **Gráficos**: Recharts o Chart.js
+- **Formularios**: React Hook Form + Yup validation
+- **Tablas**: Material-UI DataGrid o Ant Design Table
+- **Iconos**: Material Icons
+
+### BACKEND (Python + FastAPI)
+- **Framework**: FastAPI para APIs rápidas
+- **ORM**: SQLAlchemy + Alembic para migraciones
+- **Base de datos**: PostgreSQL
+- **Autenticación**: JWT tokens
+- **CORS**: Configurado para frontend
+- **Validación**: Pydantic models
+
+### ESTRUCTURA DE ARCHIVOS
