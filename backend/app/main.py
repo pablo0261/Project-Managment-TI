@@ -5,6 +5,7 @@ import os
 from fastapi.middleware.cors import CORSMiddleware 
 import traceback
 import logging
+from sqlalchemy import text
 
 # Configurar logging
 logging.basicConfig(level=logging.DEBUG)
@@ -167,10 +168,34 @@ def create_project(project: schemas.ProjectCreate, db: Session = Depends(get_db)
 
 @app.get("/api/projects/{project_id}", response_model=schemas.ProjectDetail, tags=["Projects"])
 def read_project(project_id: int, db: Session = Depends(get_db)):
-    db_project = crud.get_project_with_details(db, project_id=project_id)
-    if db_project is None:
-        raise HTTPException(status_code=404, detail="Project not found")
-    return db_project
+    try:
+        logger.info(f"🔍 Buscando proyecto ID: {project_id}")
+        
+        # Log para verificar la sesión de BD
+        try:
+            db.execute(text("SELECT 1"))
+            logger.info("✅ Conexión a BD activa")
+        except Exception as e:
+            logger.error(f"❌ Error de conexión a BD: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Database connection error: {str(e)}")
+        
+        db_project = crud.get_project_with_details(db, project_id=project_id)
+        logger.info(f"📊 Resultado de get_project_with_details: {db_project is not None}")
+        
+        if db_project is None:
+            logger.warning(f"⚠️ Proyecto {project_id} no encontrado")
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        logger.info(f"✅ Proyecto {project_id} encontrado, retornando datos")
+        return db_project
+        
+    except HTTPException:
+        # Re-lanzar excepciones HTTP directamente
+        raise
+    except Exception as e:
+        logger.error(f"💥 Error crítico en /api/projects/{project_id}: {str(e)}")
+        logger.error(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @app.get("/api/debug/projects-simple", tags=["Debug"])
 def debug_projects_simple(db: Session = Depends(get_db)):
@@ -247,34 +272,34 @@ def delete_stage(stage_id: int, db: Session = Depends(get_db)):
 # -------------------------
 # STAGES ENDPOINTS
 # -------------------------
-@app.post("/api/stages/", response_model=schemas.Stage, tags=["Stages"])
-def create_stage(stage: schemas.StageCreate, db: Session = Depends(get_db)):
-    return crud.create_stage(db=db, stage=stage)
+# @app.post("/api/stages/", response_model=schemas.Stage, tags=["Stages"])
+# def create_stage(stage: schemas.StageCreate, db: Session = Depends(get_db)):
+#     return crud.create_stage(db=db, stage=stage)
 
-@app.get("/api/stages/", response_model=List[schemas.Stage], tags=["Stages"])
-def read_stages(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_stages(db, skip=skip, limit=limit)
+# @app.get("/api/stages/", response_model=List[schemas.Stage], tags=["Stages"])
+# def read_stages(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+#     return crud.get_stages(db, skip=skip, limit=limit)
 
-@app.get("/api/stages/{stage_id}", response_model=schemas.Stage, tags=["Stages"])
-def read_stage(stage_id: int, db: Session = Depends(get_db)):
-    db_stage = crud.get_stage(db, stage_id=stage_id)
-    if db_stage is None:
-        raise HTTPException(status_code=404, detail="Stage not found")
-    return db_stage
+# @app.get("/api/stages/{stage_id}", response_model=schemas.Stage, tags=["Stages"])
+# def read_stage(stage_id: int, db: Session = Depends(get_db)):
+#     db_stage = crud.get_stage(db, stage_id=stage_id)
+#     if db_stage is None:
+#         raise HTTPException(status_code=404, detail="Stage not found")
+#     return db_stage
 
-@app.put("/api/stages/{stage_id}", response_model=schemas.Stage, tags=["Stages"])
-def update_stage(stage_id: int, stage: schemas.StageUpdate, db: Session = Depends(get_db)):
-    db_stage = crud.update_stage(db, stage_id, stage)
-    if db_stage is None:
-        raise HTTPException(status_code=404, detail="Stage not found")
-    return db_stage
+# @app.put("/api/stages/{stage_id}", response_model=schemas.Stage, tags=["Stages"])
+# def update_stage(stage_id: int, stage: schemas.StageUpdate, db: Session = Depends(get_db)):
+#     db_stage = crud.update_stage(db, stage_id, stage)
+#     if db_stage is None:
+#         raise HTTPException(status_code=404, detail="Stage not found")
+#     return db_stage
 
-@app.delete("/api/stages/{stage_id}", tags=["Stages"])
-def delete_stage(stage_id: int, db: Session = Depends(get_db)):
-    success = crud.delete_stage(db, stage_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Stage not found")
-    return {"message": "Stage deleted successfully"}
+# @app.delete("/api/stages/{stage_id}", tags=["Stages"])
+# def delete_stage(stage_id: int, db: Session = Depends(get_db)):
+#     success = crud.delete_stage(db, stage_id)
+#     if not success:
+#         raise HTTPException(status_code=404, detail="Stage not found")
+#     return {"message": "Stage deleted successfully"}
 
 # -------------------------
 # PROJECT TASKS ENDPOINTS
@@ -319,4 +344,80 @@ if os.getenv("DEBUG", "False").lower() == "true":
             "debug_mode": os.getenv("DEBUG", "False")
         }
     
+    # Endpoint de diagnóstico más detallado
+@app.get("/api/debug/project/{project_id}", tags=["Debug"])
+def debug_project_detail(project_id: int, db: Session = Depends(get_db)):
+    try:
+        logger.info(f"Intentando obtener proyecto {project_id}")
+        
+        # 1. Verificar si la tabla existe
+        try:
+            result = db.execute(text("SELECT COUNT(*) FROM projects"))
+            table_exists = True
+            project_count = result.scalar()
+            logger.info(f"Tabla projects existe, count: {project_count}")
+        except Exception as e:
+            logger.error(f"Error al acceder a tabla projects: {str(e)}")
+            table_exists = False
+        
+        # 2. Verificar si el proyecto específico existe
+        try:
+            result = db.execute(text("SELECT * FROM projects WHERE id = :id"), {"id": project_id})
+            project_raw = result.first()
+            if project_raw:
+                logger.info(f"Proyecto {project_id} encontrado en BD: {dict(project_raw)}")
+            else:
+                logger.warning(f"Proyecto {project_id} NO encontrado en BD")
+        except Exception as e:
+            logger.error(f"Error al buscar proyecto {project_id}: {str(e)}")
+        
+        # 3. Probar la función CRUD directamente
+        try:
+            from . import crud
+            project_crud = crud.get_project_with_details(db, project_id)
+            if project_crud:
+                logger.info(f"CRUD devolvió proyecto: {project_crud}")
+            else:
+                logger.warning("CRUD devolvió None")
+        except Exception as e:
+            logger.error(f"Error en CRUD: {str(e)}")
+            logger.error(traceback.format_exc())
+            
+        return {
+            "table_exists": table_exists,
+            "project_found": project_raw is not None,
+            "crud_success": project_crud is not None if 'project_crud' in locals() else False,
+            "project_raw": dict(project_raw) if project_raw else None
+        }
+        
+    except Exception as e:
+        logger.error(f"Error general en debug: {str(e)}")
+        return {"error": str(e), "traceback": traceback.format_exc()}
+    
+@app.get("/api/debug/stages-setup", tags=["Debug"])
+def debug_stages_setup(db: Session = Depends(get_db)):
+    try:
+        # Verificar tabla stages
+        from sqlalchemy import text
+        result = db.execute(text("SELECT name FROM sqlite_master WHERE type='table' AND name='stages'"))
+        table_exists = result.first() is not None
+        
+        # Verificar estructura de la tabla
+        if table_exists:
+            result = db.execute(text("PRAGMA table_info(stages)"))
+            columns = [dict(row) for row in result]
+        else:
+            columns = []
+            
+        # Verificar proyectos existentes
+        result = db.execute(text("SELECT id, name FROM projects"))
+        projects = [{"id": row[0], "name": row[1]} for row in result]
+        
+        return {
+            "stages_table_exists": table_exists,
+            "stages_columns": columns,
+            "available_projects": projects
+        }
+    except Exception as e:
+        return {"error": str(e), "traceback": traceback.format_exc()}
     

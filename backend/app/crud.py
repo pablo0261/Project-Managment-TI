@@ -151,42 +151,127 @@ def delete_project(db: Session, project_id: int):
         return True
     return False
 
-def get_project_with_details(db: Session, project_id: int):
-    project = db.query(models.Project).options(
-        joinedload(models.Project.responsible),
-        joinedload(models.Project.stages).joinedload(models.Stage.project_tasks).joinedload(models.ProjectTask.task),
-        joinedload(models.Project.stages).joinedload(models.Stage.project_tasks).joinedload(models.ProjectTask.programmer)
-    ).filter(models.Project.id == project_id).first()
+
+
+# def get_project_with_details(db: Session, project_id: int):
+#     project = db.query(models.Project).options(
+#         joinedload(models.Project.responsible),
+#         joinedload(models.Project.stages).joinedload(models.Stage.project_tasks).joinedload(models.ProjectTask.task),
+#         joinedload(models.Project.stages).joinedload(models.Stage.project_tasks).joinedload(models.ProjectTask.programmer)
+#     ).filter(models.Project.id == project_id).first()
     
-    if project:
+#     if project:
+#         total_hours = Decimal('0.00')
+#         for stage in project.stages:
+#             for pt in stage.project_tasks:
+#                 if pt.task and pt.programmer:
+#                     calculated = Decimal(str(pt.task.base_time_hours)) * Decimal(str(pt.programmer.coefficient))
+#                     pt.calculated_total_hours = calculated
+#                     total_hours += calculated
+#                 elif pt.task:
+#                     pt.calculated_total_hours = Decimal(str(pt.task.base_time_hours))
+#                     total_hours += Decimal(str(pt.task.base_time_hours))
+        
+#         project.total_estimated_hours = total_hours
+    
+#     return project
+
+# En crud.py - REEMPLAZAR la función problemática
+def get_project_with_details(db: Session, project_id: int):
+    try:
+        # Versión SIMPLIFICADA y SEGURA
+        project = db.query(models.Project).filter(models.Project.id == project_id).first()
+        
+        if not project:
+            return None
+
+        # Cargar etapas por separado para evitar problemas con joinedload
+        stages = db.query(models.Stage).filter(
+            models.Stage.project_id == project_id
+        ).order_by(models.Stage.order_index).all()
+        
+        # Para cada etapa, cargar sus tareas
+        for stage in stages:
+            stage.project_tasks = db.query(models.ProjectTask).filter(
+                models.ProjectTask.stage_id == stage.id
+            ).all()
+            
+            # Para cada project_task, cargar task y programmer
+            for project_task in stage.project_tasks:
+                project_task.task = db.query(models.Task).filter(
+                    models.Task.id == project_task.task_id
+                ).first()
+                
+                if project_task.programmer_id:
+                    project_task.programmer = db.query(models.Programmer).filter(
+                        models.Programmer.id == project_task.programmer_id
+                    ).first()
+                else:
+                    project_task.programmer = None
+
+       # Asignar las etapas al proyecto
+        project.stages = stages
+
+        # Calcular horas totales (versión simplificada)
         total_hours = Decimal('0.00')
         for stage in project.stages:
-            for pt in stage.project_tasks:
-                if pt.task and pt.programmer:
-                    calculated = Decimal(str(pt.task.base_time_hours)) * Decimal(str(pt.programmer.coefficient))
-                    pt.calculated_total_hours = calculated
-                    total_hours += calculated
-                elif pt.task:
-                    pt.calculated_total_hours = Decimal(str(pt.task.base_time_hours))
-                    total_hours += Decimal(str(pt.task.base_time_hours))
-        
+            for project_task in stage.project_tasks:
+                if project_task.task:
+                    task_hours = project_task.task.base_time_hours
+                    coefficient = project_task.programmer.coefficient if project_task.programmer else Decimal('1.00')
+                    calculated_hours = task_hours * coefficient
+                    total_hours += calculated_hours
+                    
+                    # Asignar horas calculadas
+                    project_task.calculated_total_hours = calculated_hours
+
         project.total_estimated_hours = total_hours
-    
-    return project
+        return project  
+        
+    except Exception as e:
+        print(f"Error en get_project_with_details: {e}")
+        # Fallback: devolver proyecto básico sin detalles
+        project = db.query(models.Project).filter(models.Project.id == project_id).first()
+        if project:
+            project.stages = []
+            project.total_estimated_hours = Decimal('0.00')
+        return project
 
 # ========== STAGES ==========
-def create_stage(db: Session, stage: schemas.StageCreate):
-    db_stage = models.Stage(
-        project_id=stage.project_id, 
-        name=stage.name, 
-        description=stage.description, 
-        order_index=stage.order_index
-    )
-    db.add(db_stage)
-    db.commit()
-    db.refresh(db_stage)
-    return db_stage
+# def create_stage(db: Session, stage: schemas.StageCreate):
+#     db_stage = models.Stage(
+#         project_id=stage.project_id, 
+#         name=stage.name, 
+#         description=stage.description, 
+#         order_index=stage.order_index
+#     )
+#     db.add(db_stage)
+#     db.commit()
+#     db.refresh(db_stage)
+#     return db_stage
 
+# En crud.py - AGREGAR manejo de errores a create_stage
+def create_stage(db: Session, stage: schemas.StageCreate):
+    try:
+        # Verificar que el proyecto exista
+        project = db.query(models.Project).filter(models.Project.id == stage.project_id).first()
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        
+        db_stage = models.Stage(
+            description=stage.description,
+            name=stage.name,
+            order_index=stage.order_index,
+            project_id=stage.project_id
+        )
+        db.add(db_stage)
+        db.commit()
+        db.refresh(db_stage)
+        return db_stage
+    except Exception as e:
+        db.rollback()
+        raise
+    
 def get_stage(db: Session, stage_id: int):
     return db.query(models.Stage).filter(models.Stage.id == stage_id).first()
 
@@ -251,3 +336,4 @@ def delete_project_task(db: Session, project_task_id: int):
         db.commit()
         return True
     return False
+

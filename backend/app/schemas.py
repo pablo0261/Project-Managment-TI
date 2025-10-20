@@ -65,13 +65,16 @@ class StageBase(BaseModel):
     description: Optional[str] = None
     order_index: int = 0
 
-class StageCreate(StageBase):
-    pass
-
-class StageUpdate(BaseModel):
+class StageCreate(BaseModel):
     name: str
     description: Optional[str] = None
     order_index: int
+    project_id: int
+
+class StageUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    order_index: Optional[int] = None
 
 class Stage(StageBase):
     id: int
