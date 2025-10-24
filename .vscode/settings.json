@@ -1,4 +1,18 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:system",
-    "python-envs.pythonProjects": []
+    "python-envs.pythonProjects": [],
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "PostgreSQL Local",
+            "group": "project_manager_db",
+            "database": "project_manager_db",
+            "username": "admin",
+            "password": "admin"
+        }
+    ]
 }

@@ -65,11 +65,8 @@ class StageBase(BaseModel):
     description: Optional[str] = None
     order_index: int = 0
 
-class StageCreate(BaseModel):
-    name: str
-    description: Optional[str] = None
-    order_index: int
-    project_id: int
+class StageCreate(StageBase):
+    project_tasks: List["ProjectTaskCreate"] = []
 
 class StageUpdate(BaseModel):
     name: Optional[str] = None
@@ -93,6 +90,9 @@ class ProjectBase(BaseModel):
 
 class ProjectCreate(ProjectBase):
     pass
+
+class ProjectCreateWithStages(ProjectCreate):
+    stages: List[StageCreate] = []
 
 class Project(ProjectBase):
     id: int

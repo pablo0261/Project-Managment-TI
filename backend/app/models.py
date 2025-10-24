@@ -14,7 +14,7 @@ class Programmer(Base):
     responsible_projects = relationship(
         "Project", 
         back_populates="responsible",
-        foreign_keys="[Project.responsible_id]"
+        foreign_keys='[Project.responsible_id]'
     )
     
     # Relación: tareas asignadas a este programador
@@ -47,7 +47,7 @@ class Project(Base):
     responsible = relationship(
         "Programmer", 
         back_populates="responsible_projects",
-        foreign_keys=[responsible_id]
+        foreign_keys='[Project.responsible_id]'
     )
     
     # Relación a las etapas del proyecto

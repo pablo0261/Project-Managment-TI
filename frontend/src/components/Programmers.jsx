@@ -351,7 +351,7 @@ function Programmers() {
                       <td className="py-3 px-4">
                         <div className="flex space-x-2">
                           <button 
-                            onClick={() => handleEdit(task)}
+                            onClick={() => handleEdit(programmer)}
                             className="inline-flex items-center px-3 py-1.5 border border-yellow-300 text-yellow-700 bg-yellow-50 rounded text-sm hover:bg-yellow-100 transition-colors"
                           >
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -360,7 +360,7 @@ function Programmers() {
                             Editar
                           </button>
                           <button 
-                            onClick={() => handleDelete(task.id)}
+                            onClick={() => handleDelete(programmer.id)}
                             className="inline-flex items-center px-3 py-1.5 border border-red-300 text-red-700 bg-red-50 rounded text-sm hover:bg-red-100 transition-colors"
                           >
                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

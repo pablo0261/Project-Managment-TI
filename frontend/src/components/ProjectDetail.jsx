@@ -188,14 +188,19 @@ function ProjectDetail() {
                 {project.stages && project.stages.length > 0 ? (
                     project.stages.map(stage => (
                         <div key={stage.id} className="border border-gray-200 rounded p-4 mb-4">
-                            <h3 className="text-xl font-semibold mb-2">{stage.name} (Orden: {stage.order_index})</h3>
-                            <p className="text-gray-600 mb-4">{stage.description}</p>
-                            <button 
-                                onClick={() => handleDeleteStage(stage.id)}
-                                className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 mb-4"
-                            >
-                                Eliminar Etapa
-                            </button>
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="text-xl font-semibold mb-2">{stage.name} (Orden: {stage.order_index})</h3>
+                                    <p className="text-gray-600">{stage.description}</p>
+                                </div>
+                                <button 
+                                    onClick={() => handleDeleteStage(stage.id)}
+                                    className="w-8 h-8 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600 transition-colors"
+                                    title="Eliminar etapa"
+                                >
+                                    ×
+                                </button>
+                            </div>
 
                             <h4 className="text-lg font-medium mb-2">Tareas de la Etapa</h4>
                             {stage.project_tasks && stage.project_tasks.length > 0 ? (
@@ -232,9 +237,10 @@ function ProjectDetail() {
                                                 <td className="py-2 px-4">
                                                     <button 
                                                         onClick={() => handleDeleteProjectTask(pt.id)}
-                                                        className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
+                                                        className="w-8 h-8 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600 transition-colors"
+                                                        title="Eliminar tarea"
                                                     >
-                                                        Eliminar
+                                                        ×
                                                     </button>
                                                 </td>
                                             </tr>
