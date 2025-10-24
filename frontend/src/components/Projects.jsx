@@ -76,7 +76,7 @@ const ProjectDetailModal = ({ isOpen, onClose, project, availableTasks, availabl
                     <span className="text-3xl mr-3">⏱️</span>
                     <div>
                       <h3 className="text-sm font-bold text-gray-600 uppercase">Tiempo Total Estimado</h3>
-                      <p className="text-3xl font-bold text-purple-700">{project.total_estimated_hours.toFixed(2)} horas</p>
+                      <p className="text-3xl font-bold text-purple-700">{parseFloat(project.total_estimated_hours).toFixed(2)} horas</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -91,7 +91,7 @@ const ProjectDetailModal = ({ isOpen, onClose, project, availableTasks, availabl
             <div className="border-t-2 border-gray-200 pt-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold text-gray-800 flex items-center">
-                  <span className="text-2xl mr-2">🎯</span>
+                  <span className="text-2xl mr-2"></span>
                   Etapas del Proyecto
                   <span className="ml-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-bold">
                     {project.stages?.length || 0}
@@ -106,7 +106,7 @@ const ProjectDetailModal = ({ isOpen, onClose, project, availableTasks, availabl
                       <div className="flex items-start justify-between">
                         <div>
                           <h4 className="text-lg font-bold text-blue-900 mb-2">
-                            🔷 Etapa {stageIndex + 1}: {stage.name}
+                            Etapa {stageIndex + 1}: {stage.name}
                           </h4>
                           <p className="text-gray-700">{stage.description || <span className="text-gray-400 italic">Sin descripción</span>}</p>
                         </div>
@@ -138,7 +138,7 @@ const ProjectDetailModal = ({ isOpen, onClose, project, availableTasks, availabl
                                   </div>
                                   {task.task?.base_time_hours && (
                                     <div className="mt-1 text-xs text-gray-600">
-                                      ⏱️ Tiempo base: <span className="font-bold">{task.task.base_time_hours}h</span>
+                                      ⏱️ Tiempo base: <span className="font-bold">  {parseFloat(task.task.base_time_hours).toFixed(2)}h</span>
                                     </div>
                                   )}
                                 </div>
@@ -168,8 +168,8 @@ const ProjectDetailModal = ({ isOpen, onClose, project, availableTasks, availabl
                                 <div>
                                   <label className="block text-xs font-bold text-gray-500 mb-1 uppercase">⏰ Horas Calculadas</label>
                                   <div className="p-2 border border-gray-300 rounded bg-blue-50 text-sm font-bold text-blue-900 text-center">
-                                    {task.calculated_total_hours ? 
-                                      `${task.calculated_total_hours.toFixed(2)}h` : 
+                                   {task.calculated_total_hours ? 
+                                      `${parseFloat(task.calculated_total_hours).toFixed(2)}h` : 
                                       <span className="text-gray-400">N/A</span>
                                     }
                                   </div>
@@ -612,21 +612,21 @@ function Projects() {
     }
   };
 
-  // Abrir modal para ver detalles del proyecto
-  const handleViewDetails = async (project) => {
-    try {
-      const response = await fetch(`/api/projects/${project.id}/details`);
-      if (response.ok) {
-        const projectDetails = await response.json();
-        setViewingProject(projectDetails);
-        setDetailModalOpen(true);
-      } else {
-        throw new Error('Error al cargar detalles del proyecto');
-      }
-    } catch (err) {
-      setError('Error al cargar detalles del proyecto: ' + err.message);
+    // Abrir modal para ver detalles del proyecto
+    const handleViewDetails = async (project) => {
+  try {
+    const response = await fetch(`/api/projects/${project.id}`);
+    if (response.ok) {
+      const projectDetails = await response.json();
+      setViewingProject(projectDetails);
+      setDetailModalOpen(true);
+    } else {
+      throw new Error('Error al cargar detalles del proyecto');
     }
-  };
+  } catch (err) {
+    setError('Error al cargar detalles del proyecto: ' + err.message);
+  }
+};
 
   // Cerrar modales
   const handleCloseModal = () => {

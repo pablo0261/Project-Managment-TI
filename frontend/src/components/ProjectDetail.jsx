@@ -147,7 +147,7 @@ function ProjectDetail() {
             <p className="mb-4">Responsable: {project.responsible ? project.responsible.name : 'N/A'}</p>
 
             <div className="bg-white rounded shadow-md p-4 mb-8">
-                <h2 className="text-2xl font-bold mb-4">Tiempo Total del Proyecto: {project.total_estimated_hours ? project.total_estimated_hours.toFixed(2) : '0.00'} horas</h2>
+                <h2 className="text-2xl font-bold mb-4">Tiempo Total del Proyecto: {project.total_estimated_hours ? parseFloat(project.total_estimated_hours).toFixed(2) : '0.00'}  horas</h2>
             </div>
 
             {/* Formulario para agregar nueva etapa */}
@@ -188,19 +188,14 @@ function ProjectDetail() {
                 {project.stages && project.stages.length > 0 ? (
                     project.stages.map(stage => (
                         <div key={stage.id} className="border border-gray-200 rounded p-4 mb-4">
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 className="text-xl font-semibold mb-2">{stage.name} (Orden: {stage.order_index})</h3>
-                                    <p className="text-gray-600">{stage.description}</p>
-                                </div>
-                                <button 
-                                    onClick={() => handleDeleteStage(stage.id)}
-                                    className="w-8 h-8 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600 transition-colors"
-                                    title="Eliminar etapa"
-                                >
-                                    ×
-                                </button>
-                            </div>
+                            <h3 className="text-xl font-semibold mb-2">{stage.name} (Orden: {stage.order_index})</h3>
+                            <p className="text-gray-600 mb-4">{stage.description}</p>
+                            <button 
+                                onClick={() => handleDeleteStage(stage.id)}
+                                className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 mb-4"
+                            >
+                                Eliminar Etapa
+                            </button>
 
                             <h4 className="text-lg font-medium mb-2">Tareas de la Etapa</h4>
                             {stage.project_tasks && stage.project_tasks.length > 0 ? (
@@ -220,7 +215,7 @@ function ProjectDetail() {
                                             <tr key={pt.id} className="border-t">
                                                 <td className="py-2 px-4">{pt.task.name}</td>
                                                 <td className="py-2 px-4">{pt.task.description}</td>
-                                                <td className="py-2 px-4">{pt.task.base_time_hours}</td>
+                                                <td className="py-2 px-4">{parseFloat(pt.task.base_time_hours).toFixed(2)}</td>
                                                 <td className="py-2 px-4">
                                                     <select
                                                         value={pt.programmer ? pt.programmer.id : ''}
@@ -233,14 +228,13 @@ function ProjectDetail() {
                                                         ))}
                                                     </select>
                                                 </td>
-                                                <td className="py-2 px-4">{pt.calculated_total_hours ? pt.calculated_total_hours.toFixed(2) : 'N/A'}</td>
+                                                <td className="py-2 px-4">{pt.calculated_total_hours ? parseFloat(pt.calculated_total_hours).toFixed(2) : 'N/A'}</td>
                                                 <td className="py-2 px-4">
                                                     <button 
                                                         onClick={() => handleDeleteProjectTask(pt.id)}
-                                                        className="w-8 h-8 bg-red-500 text-white rounded flex items-center justify-center hover:bg-red-600 transition-colors"
-                                                        title="Eliminar tarea"
+                                                        className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
                                                     >
-                                                        ×
+                                                        Eliminar
                                                     </button>
                                                 </td>
                                             </tr>
